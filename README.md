@@ -130,8 +130,4 @@ This case study highlights how raw data can be transformed into actionable busin
 ## 📬 Contact
 
 For questions or collaboration, feel free to reach out.
-
----
-
-⭐ *If you found this useful, consider starring the repo!*
 # Bright-Tv-Case-Sturdy-
