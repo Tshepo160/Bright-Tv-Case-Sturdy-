@@ -1,0 +1,278 @@
+SELECT * 
+FROM `workspace`.`default`.`profiles` 
+LIMIT 100;
+
+-- 1) LIMIT — first 10 rows
+SELECT *
+FROM `workspace`.`default`.`profiles`
+LIMIT 10;
+
+-- 2) DISTINCT — unique provinces
+SELECT DISTINCT Province
+FROM `workspace`.`default`.`profiles`;
+
+-- 3) SELECT specific columns
+SELECT UserID, Name, Surname, Age, Province
+FROM `workspace`.`default`.`profiles`;
+
+-- 4) Column ALIAS
+SELECT
+      UserID AS user_id,
+      Name   AS first_name,
+      Surname AS last_name,
+  `Social Media Handle` AS handle
+FROM `workspace`.`default`.`profiles`;
+
+-- 5) WHERE — only males
+SELECT *
+FROM `workspace`.`default`.`profiles`
+WHERE Gender = 'male';
+
+-- 6) WHERE AND > 60 — males older than 60
+SELECT *
+FROM `workspace`.`default`.`profiles`
+WHERE Gender = 'male'
+  AND Age > 60;
+
+-- 7) WHERE and OR — Gauteng or Western Cape residents
+SELECT *
+FROM `workspace`.`default`.`profiles`
+WHERE Province = 'Gauteng'
+   OR Province = 'Western Cape';
+
+-- 8) WHERE and IN — selected provinces
+SELECT *
+FROM `workspace`.`default`.`profiles`
+WHERE Province IN ('Gauteng', 'Western Cape', 'Free State');
+
+-- 9) MAX AS / MIN AS — oldest and youngest age
+SELECT
+  MAX(Age) AS oldest_age,
+  MIN(Age) AS youngest_age
+FROM `workspace`.`default`.`profiles`;
+
+-- 10) ORDER BY DESC — oldest users first
+SELECT UserID, Name, Surname, Age
+FROM `workspace`.`default`.`profiles`
+ORDER BY Age DESC;
+
+-- 11) COUNT TOTALS — total profiles
+SELECT COUNT(*) AS total_profiles
+FROM `workspace`.`default`.`profiles`;
+
+-- 12) SUM AS total_views — synthetic Views column (no Views in source)
+WITH profiles_with_views AS (
+  SELECT
+    p.*,
+    CAST(p.Age * 10 AS BIGINT) AS Views   -- synthetic metric
+  FROM `workspace`.`default`.`profiles` p,
+
+SELECT SUM(views) AS total_views
+FROM `workspace`.`default`.`profiles`;
+
+-- 13) GROUP BY — count of users per province per gender
+SELECT
+  Province,
+  Gender,
+  COUNT(*) AS user_count
+FROM `workspace`.`default`.`profiles`
+GROUP BY Province, Gender
+ORDER BY user_count DESC;
+
+-- 14) NULL — find rows where Province IS NULL
+SELECT *
+FROM `workspace`.`default`.`profiles`
+WHERE Province IS NULL;
+
+-- 15) IFNULL / COALESCE — replace NULL province with 'Unknown'
+SELECT
+  UserID,
+  Name,
+  IFNULL(Province, 'Unknown')        AS province_clean,
+  COALESCE(Race, Gender, 'N/A')      AS demographic_fallback
+FROM `workspace`.`default`.`profiles`;
+
+-- 16) Bonus: combined query — average age per province, excluding NULLs,
+--     ordered by avg_age DESC, only provinces with > 60 users
+SELECT
+  IFNULL(Province, 'Unknown') AS province,
+  COUNT(*)                    AS total_users,
+  ROUND(AVG(Age), 2)          AS avg_age,
+  MAX(Age)                    AS oldest,
+  MIN(Age)                    AS youngest
+FROM `workspace`.`default`.`profiles`
+WHERE Age IS NOT NULL
+GROUP BY IFNULL(Province, 'Unknown')
+HAVING COUNT(*) > 60
+ORDER BY avg_age DESC;
+
+SELECT p.UserID
+       p.Gender,
+       p.Race,
+       p.Age,
+       p.Province,
+       v.Channel2
+       v.RecordedDate,
+       v.Duration2 
+FROM `workspace`.`default`.`profiles` AS p 
+LEFT JOIN `workspace`.`default`.`viewership` AS v ON p.UserID = v.UserID;
+
+
+
+
+
+
+SELECT * 
+FROM `workspace`.`default`.`viewership` 
+LIMIT 100;
+
+
+SELECT *
+FROM `workspace`.`default`.`viewership`
+LIMIT 10;
+
+-- ---------------------------------------------------------------------
+-- 2. DISTINCT — unique channels in the dataset
+-- ---------------------------------------------------------------------
+SELECT DISTINCT Channel2
+FROM `workspace`.`default`.`viewership`
+ORDER BY Channel2;
+
+-- ---------------------------------------------------------------------
+-- 3. SELECT specific columns
+-- ---------------------------------------------------------------------
+SELECT UserID, 
+       Channel2, 
+       record_ts_utc, 
+       `Duration 2`
+FROM `workspace`.`default`.`viewership`
+LIMIT 20;
+
+-- ---------------------------------------------------------------------
+-- 4. Column ALIAS
+-- ---------------------------------------------------------------------
+SELECT
+     UserID AS viewer,
+     Channel2 AS tv_channel,
+     record_ts_utc AS watched_at_utc,
+     `Duration 2` AS seconds_watched
+FROM `workspace`.`default`.`viewership`
+LIMIT 20;
+
+-- ---------------------------------------------------------------------
+-- 5. WHERE — only one channel
+-- ---------------------------------------------------------------------
+SELECT *
+FROM `workspace`.`default`.`viewership`
+WHERE Channel2 = 'Channel O';
+
+-- ---------------------------------------------------------------------
+-- 6. WHERE … AND … > 60  (sessions longer than 60 seconds)
+-- ---------------------------------------------------------------------
+SELECT UserID, Channel2, `Duration 2`
+FROM `workspace`.`default`.`viewership`
+WHERE Channel2 = 'Supersport Live Events'
+AND (HOUR(`Duration 2`) * 3600 + MINUTE(`Duration 2`) * 60 + SECOND(`Duration 2`)) > 60;
+
+-- ---------------------------------------------------------------------
+-- 7. WHERE … AND … OR …
+-- ---------------------------------------------------------------------
+SELECT UserID, Channel2, `Duration 2`
+FROM `workspace`.`default`.`viewership`
+WHERE (HOUR(`Duration 2`) * 3600 + MINUTE(`Duration 2`) * 60 + SECOND(`Duration 2`)) > 60
+AND (Channel2 = 'Boomerang' OR Channel2 = 'Cartoon Network');
+
+-- ---------------------------------------------------------------------
+-- 8. WHERE … IN (…)
+-- ---------------------------------------------------------------------
+SELECT *
+FROM `workspace`.`default`.`viewership`
+WHERE Channel2 IN ('CNN', 'Trace TV', 'Channel O', 'Africa Magic');
+
+-- ---------------------------------------------------------------------
+-- 9. MAX … AS Min  (longest single viewing session, aliased)
+-- ---------------------------------------------------------------------
+SELECT
+      MAX(`Duration 2`) AS Min   -- alias intentionally named "Min" per request
+FROM `workspace`.`default`.`viewership`;
+
+-- ---------------------------------------------------------------------
+-- 10. ORDER BY DESC — longest sessions first
+-- ---------------------------------------------------------------------
+SELECT UserID, 
+       Channel2, 
+       `Duration 2`
+FROM `workspace`.`default`.`viewership`
+ORDER BY `Duration 2` DESC
+LIMIT 20;
+
+-- ---------------------------------------------------------------------
+-- 11. COUNT — total number of viewing records
+-- ---------------------------------------------------------------------
+SELECT COUNT(*) AS total_records
+FROM `workspace`.`default`.`viewership`;
+
+-- ---------------------------------------------------------------------
+-- 12. SUM AS total_views (total seconds watched across all data)
+-- ---------------------------------------------------------------------
+SELECT SUM(`Duration 2`) AS total_views
+FROM `workspace`.`default`.`viewership`;
+
+-- ---------------------------------------------------------------------
+-- 13. MIN / MAX AS Channels (shortest & longest session per channel)
+-- ---------------------------------------------------------------------
+SELECT
+      Channel2 AS Channels,
+      MIN(`Duration 2`) AS shortest_session_sec,
+      MAX(`Duration 2`) AS longest_session_sec
+FROM `workspace`.`default`.`viewership`
+GROUP BY Channel2
+ORDER BY longest_session_sec DESC;
+
+-- ---------------------------------------------------------------------
+-- 14. MOST WATCHED channel (by total seconds)
+-- ---------------------------------------------------------------------
+SELECT
+      Channel2 AS most_watched_channel,
+      SUM(`Duration 2`) AS total_seconds_watched
+FROM `workspace`.`default`.`viewership`
+GROUP BY Channel2
+ORDER BY total_seconds_watched DESC
+LIMIT 1;
+
+-- ---------------------------------------------------------------------
+-- 15. LIST WATCHED — every channel ranked by total watch time
+-- ---------------------------------------------------------------------
+SELECT
+      Channel2,
+      COUNT(*) AS sessions,
+  SUM(`Duration 2`) AS total_seconds_watched
+FROM `workspace`.`default`.`viewership`
+GROUP BY Channel2
+ORDER BY total_seconds_watched DESC;
+
+-- ---------------------------------------------------------------------
+-- 16. GROUP BY — viewing per user per channel
+-- ---------------------------------------------------------------------
+SELECT
+      UserID,
+      channel2,
+      COUNT(*) AS sessions,
+  SUM(`Duration 2`) AS total_seconds
+FROM `workspace`.`default`.`viewership`
+GROUP BY UserID, Channel2
+ORDER BY total_seconds DESC
+LIMIT 50;
+
+-- ---------------------------------------------------------------------
+-- 17. Convert UTC → SA time (Africa/Johannesburg, UTC+2)
+-- ---------------------------------------------------------------------
+SELECT
+      UserID,
+      channel2,
+      record_ts_utc AS watched_at_utc,
+  from_utc_timestamp(record_ts_utc, 'Africa/Johannesburg') AS watched_at_sa,
+  `Duration 2`
+FROM `workspace`.`default`.`viewership`
+ORDER BY watched_at_sa DESC
+LIMIT 20;
