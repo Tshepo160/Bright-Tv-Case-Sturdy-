@@ -126,6 +126,8 @@ This case study highlights how raw data can be transformed into actionable busin
 4. Review the presentation for insights
 
 ---
+-- CONTACT: Email: tshemol@gmail.com 
+   LinkedIn: https://www.linkedin.com/in/tshepo-christopher-moleko-b0a1b852/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BhtigrWBKSoW0e79YvAwcMg%3D%3D
 
 ## 📬 Contact
 
